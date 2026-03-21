@@ -66,58 +66,6 @@ app.post('/api/haskback_callback', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Hashback server running on port ${PORT}`);
 });
-      if (!msisdn || !amount) {
-        console.log('Validation failed: Missing msisdn or amount');
-        return res.status(400).json({ success: false, message: 'Missing msisdn or amount' });
-      }
-      const payload = {
-        msisdn,
-        amount,
-        reference: reference || 'LoanAppUser',
-      };
-      if (partyB) payload.partyB = partyB;
-
-      console.log('Forwarding to Hashback API:', process.env.HASKBACK_API_URL + '/haskback_push', payload);
-      const response = await axios.post(process.env.HASKBACK_API_URL + '/haskback_push', payload, {
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': process.env.HASKBACK_API_KEY,
-        },
-        timeout: 15000,
-      });
-      console.log('Hashback API response:', response.data);
-      return res.json(response.data);
-    } catch (error) {
-      console.error('Error in /api/haskback_push:', error.message, error.response?.data || '');
-      return res.status(500).json({ success: false, message: error.message });
-    }
-  });
-
-  // Hashback callback endpoint
-  app.post('/api/haskback_callback', (req, res) => {
-    console.log('Received Hashback callback:', req.body);
-    res.json({ success: true });
-  });
-
-  // Start server
-  app.listen(PORT, () => {
-    console.log(`Hashback server running on port ${PORT}`);
-  });
-  }
-
-  return response.data.access_token;
-}
-
-function buildPassword(shortCode, passkey, timestamp) {
-  return Buffer.from(`${shortCode}${passkey}${timestamp}`).toString('base64');
-}
-
-function isPlaceholder(value) {
-  return PLACEHOLDER_VALUES.has(String(value || '').trim());
-}
-
-function getTransactionType() {
-  const raw = String(process.env.DARAJA_TRANSACTION_TYPE || APP_EXPECTED_TRANSACTION_TYPE).trim();
   return ALLOWED_TRANSACTION_TYPES.has(raw) ? raw : null;
 }
 
