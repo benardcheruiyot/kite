@@ -67,37 +67,6 @@ app.listen(PORT, () => {
   console.log(`Hashback server running on port ${PORT}`);
 });
 
-app.use(express.json({ limit: '1mb' }));
-app.use(express.static(path.join(__dirname, '..', 'frontend')));
-app.disable('x-powered-by');
-app.use(cors({
-  origin: [
-    'https://instantmkoponow.vercel.app',
-    'http://localhost:3000'
-  ],
-  credentials: true
-}));
-app.use((_req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('Referrer-Policy', 'no-referrer');
-  next();
-});
-app.use((req, res, next) => {
-  req.requestId = randomUUID();
-  res.setHeader('X-Request-Id', req.requestId);
-
-  const originalJson = res.json.bind(res);
-  res.json = (body) => {
-    if (body && typeof body === 'object' && !Array.isArray(body) && !Object.prototype.hasOwnProperty.call(body, 'requestId')) {
-      return originalJson({ requestId: req.requestId, ...body });
-    }
-    return originalJson(body);
-  };
-
-  next();
-});
-
 // In-memory status store for local polling.
 const checkoutStore = new Map();
 const initiateRateStore = new Map();
