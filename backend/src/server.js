@@ -101,21 +101,22 @@ const STK_RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
 const STK_PENDING_TX_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 
 // Cleanup old pending transactions and rate limit entries every minute
-setInterval(() => {
-	const now = Date.now();
-	// Clean pending transactions
-	for (const [msisdn, val] of stkPendingTx.entries()) {
-		if (!val || !val.createdAt || now - val.createdAt > STK_PENDING_TX_TIMEOUT) {
-			stkPendingTx.delete(msisdn);
-		}
-	}
-	// Clean rate limit entries
-	for (const [msisdn, ts] of stkRateLimit.entries()) {
-		if (now - ts > STK_PENDING_TX_TIMEOUT) {
-			stkRateLimit.delete(msisdn);
-		}
-	}
-}, 60 * 1000);
+function cleanupStaleTransactions() {
+    const now = Date.now();
+    // Clean pending transactions (more aggressively: 2.5 min instead of 5 min)
+    for (const [msisdn, val] of stkPendingTx.entries()) {
+        if (!val || !val.createdAt || now - val.createdAt > (STK_PENDING_TX_TIMEOUT / 2)) {
+            stkPendingTx.delete(msisdn);
+        }
+    }
+    // Clean rate limit entries (same window as STK_RATE_LIMIT_WINDOW)
+    for (const [msisdn, ts] of stkRateLimit.entries()) {
+        if (now - ts > STK_RATE_LIMIT_WINDOW) {
+            stkRateLimit.delete(msisdn);
+        }
+    }
+}
+setInterval(cleanupStaleTransactions, 30 * 1000); // Run every 30 seconds
 
 app.post('/api/haskback_push', async (req, res) => {
 	   console.log('Received /api/haskback_push:', req.body);
@@ -145,7 +146,7 @@ app.post('/api/haskback_push', async (req, res) => {
 	if (stkPendingTx.has(msisdn)) {
 		return res.status(429).json({ success: false, message: 'You have a pending transaction. Please complete it before initiating a new one.' });
 	}
-	// Rate limit: 1 request per msisdn per minute, but allow immediate retry if last tx failed/cancelled
+	// Rate limit: 1 request per msisdn per minute, but allow immediate retry if last tx failed/cancelled/wrong pin/user cancelled
 	const now = Date.now();
 	const last = stkRateLimit.get(msisdn) || 0;
 	let lastTxId = null;
@@ -162,10 +163,18 @@ app.post('/api/haskback_push', async (req, res) => {
 		}
 	}
 	if (lastTxId && txStore.has(lastTxId)) {
-		lastTxStatus = txStore.get(lastTxId).status;
+		lastTxStatus = String(txStore.get(lastTxId).status || '').toUpperCase();
 	}
-	// Only enforce rate limit if last tx is not FAILED
-	if (now - last < STK_RATE_LIMIT_WINDOW && lastTxStatus !== 'FAILED') {
+	// Allow immediate retry if last tx is FAILED, CANCELLED, REVERSED, DECLINED, USER_CANCELLED, WRONG_PIN, AUTHENTICATION_FAILED
+	const retryableStatuses = [
+		'FAILED', 'CANCELLED', 'REVERSED', 'DECLINED',
+		'USER_CANCELLED', 'USERCANCELLED', 'USER CANCELLED',
+		'WRONG_PIN', 'WRONGPIN', 'WRONG PIN',
+		'REQUEST_CANCELLED_BY_USER', 'REQUEST CANCELLED BY USER',
+		'REQUEST_CANCELLED', 'REQUEST CANCELLED',
+		'AUTHENTICATION_FAILED', 'AUTHENTICATION FAILED'
+	];
+	if (now - last < STK_RATE_LIMIT_WINDOW && !retryableStatuses.includes(lastTxStatus)) {
 		return res.status(429).json({ success: false, message: 'Too many STK requests. Please wait a minute before trying again.' });
 	}
 	stkRateLimit.set(msisdn, now);
