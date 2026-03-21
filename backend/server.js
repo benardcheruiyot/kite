@@ -66,11 +66,7 @@ app.post('/api/haskback_callback', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Hashback server running on port ${PORT}`);
 });
-      message: error.response?.data?.errorMessage || error.message || 'Daraja API test failed.',
-      details: error.response?.data || null,
-    });
-  }
-});
+
 
 function makeMockCheckoutId() {
   return `ws_CO_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
