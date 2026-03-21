@@ -358,14 +358,37 @@ app.use((req, res) => {
   return res.status(404).send('Not Found');
 });
 
+// --- Daraja Readiness Check ---
+function getReadiness() {
+  // Required env vars for Daraja
+  const required = [
+    'DARAJA_CONSUMER_KEY',
+    'DARAJA_CONSUMER_SECRET',
+    'DARAJA_SHORTCODE',
+    'DARAJA_PASSKEY',
+    'DARAJA_CALLBACK_URL',
+    'DARAJA_TRANSACTION_TYPE',
+  ];
+  const missing = required.filter((k) => !process.env[k] || String(process.env[k]).includes('your_'));
+  const configuredTransactionType = process.env.DARAJA_TRANSACTION_TYPE || null;
+  // For sandbox, transaction type may be forced
+  const effectiveTransactionType = configuredTransactionType === 'CustomerBuyGoodsOnline' ? 'CustomerPayBillOnline' : configuredTransactionType;
+  return {
+    ok: missing.length === 0,
+    missing,
+    configuredTransactionType,
+    effectiveTransactionType,
+  };
+}
+
 app.listen(PORT, () => {
   const readiness = getReadiness();
   console.log(`Daraja backend running at http://localhost:${PORT}`);
-  console.log(`STK mode: ${DARAJA_MOCK ? 'MOCK' : 'LIVE'}`);
-  if (!DARAJA_MOCK && readiness.configuredTransactionType !== readiness.effectiveTransactionType) {
+  console.log(`STK mode: ${typeof DARAJA_MOCK !== 'undefined' && DARAJA_MOCK ? 'MOCK' : 'LIVE'}`);
+  if (typeof DARAJA_MOCK !== 'undefined' && !DARAJA_MOCK && readiness.configuredTransactionType !== readiness.effectiveTransactionType) {
     console.warn(`Using ${readiness.effectiveTransactionType} for sandbox compatibility (configured ${readiness.configuredTransactionType}).`);
   }
-  if (!DARAJA_MOCK && !readiness.ok) {
+  if (typeof DARAJA_MOCK !== 'undefined' && !DARAJA_MOCK && !readiness.ok) {
     console.warn(`STK live mode is not ready. Missing/invalid: ${readiness.missing.join(', ')}`);
   }
 });
