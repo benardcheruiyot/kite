@@ -134,10 +134,27 @@ app.post('/api/haskback_push', async (req, res) => {
 	if (stkPendingTx.has(msisdn)) {
 		return res.status(429).json({ success: false, message: 'You have a pending transaction. Please complete it before initiating a new one.' });
 	}
-	// Rate limit: 1 request per msisdn per minute
+	// Rate limit: 1 request per msisdn per minute, but allow immediate retry if last tx failed/cancelled
 	const now = Date.now();
 	const last = stkRateLimit.get(msisdn) || 0;
-	if (now - last < STK_RATE_LIMIT_WINDOW) {
+	let lastTxId = null;
+	let lastTxStatus = null;
+	// Try to get last txId from pending or txStore
+	if (stkPendingTx.has(msisdn)) {
+		lastTxId = stkPendingTx.get(msisdn).txId;
+	} else {
+		// Find the most recent tx for this msisdn in txStore
+		for (const [txId, tx] of txStore.entries()) {
+			if (tx.msisdn === msisdn && (!lastTxId || (tx.updatedAt && tx.updatedAt > (txStore.get(lastTxId)?.updatedAt || 0)))) {
+				lastTxId = txId;
+			}
+		}
+	}
+	if (lastTxId && txStore.has(lastTxId)) {
+		lastTxStatus = txStore.get(lastTxId).status;
+	}
+	// Only enforce rate limit if last tx is not FAILED
+	if (now - last < STK_RATE_LIMIT_WINDOW && lastTxStatus !== 'FAILED') {
 		return res.status(429).json({ success: false, message: 'Too many STK requests. Please wait a minute before trying again.' });
 	}
 	stkRateLimit.set(msisdn, now);
