@@ -1,0 +1,65 @@
+:root {
+  /* Safaricom Brand Identity */
+  --saf-green: #00A651;
+  --saf-black: #000000;
+  --saf-white: #ffffff;
+  --saf-red: #E4002B;
+  /* Accent */
+
+  /* Semantic Mappings */
+  --primary: var(--saf-green);
+  --primary-dark: #008740;
+  --secondary: var(--saf-black);
+  --accent: var(--saf-red);
+
+  --bg-light: #f4f4f4;
+  --text-main: #1a1a1a;
+  --text-muted: #666666;
+
+  /* Global Gradients */
+  --gradient-main: linear-gradient(135deg, #00A651 0%, #008740 100%);
+  --gradient-dark: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+
+  /* Spacing & Layout */
+  --radius: 12px;
+  --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+body {
+  background-color: var(--bg-light);
+  color: var(--text-main);
+}
+
+.text-primary {
+  color: var(--primary) !important;
+}
+
+.bg-primary {
+  background-color: var(--primary) !important;
+}
+
+/* Buttons */
+.btn-primary {
+  background: var(--primary);
+  color: var(--saf-white);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+/* Micro-interactions */
+button:active,
+.btn:active {
+  transform: scale(0.98);
+}
+
+input:focus,
+select:focus {
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}

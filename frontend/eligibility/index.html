@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Eligibility | mkopochapchap</title>
+
+    <!-- Favicons -->
+    <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon.192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon.512.png">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- SweetAlert -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="/js/security.js"></script>
+
+    <link rel="stylesheet" href="/css/theme.css">
+    <link rel="stylesheet" href="/css/components.css">
+    <style>
+        :root {
+            --primary: #00A651;
+            --primary-light: #33b874;
+            --secondary: #000000;
+            --white: #ffffff;
+            --black: #000000;
+            --gray: #6c757d;
+            --light-gray: #f8f9fa;
+            --gradient: linear-gradient(135deg, #00A651 0%, #008740 100%);
+            --border-radius: 20px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #f0f2f5;
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(187, 0, 0, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(0, 102, 0, 0.05) 0%, transparent 20%);
+            color: var(--black);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .loan-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            padding: 40px 32px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 1.6rem;
+            color: var(--primary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .logo span {
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--gray);
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+        }
+
+        .amount-range {
+            font-weight: 700;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.4rem;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 16px 18px;
+            border: 2px solid transparent;
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            color: var(--black);
+            font-weight: 500;
+        }
+
+        .form-control:focus {
+            outline: none;
+            background-color: var(--white);
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(187, 0, 0, 0.1);
+        }
+
+        /* Floating label simulation */
+        .form-control::placeholder {
+            color: transparent;
+        }
+
+        .form-label {
+            position: absolute;
+            left: 18px;
+            top: 18px;
+            color: var(--gray);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            padding: 0 4px;
+            background: transparent;
+        }
+
+        .form-control:focus+.form-label,
+        .form-control:not(:placeholder-shown)+.form-label {
+            top: -10px;
+            font-size: 0.8rem;
+            color: var(--primary);
+            background: var(--white);
+            font-weight: 600;
+            border-radius: 4px;
+        }
+
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236c757d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 18px center;
+            background-size: 18px;
+            font-weight: 500;
+        }
+
+        .btn-check {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--black) 0%, var(--primary) 100%);
+            color: var(--white);
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin-top: 24px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 25px rgba(187, 0, 0, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .btn-check::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .btn-check:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(187, 0, 0, 0.4);
+        }
+
+        .btn-check:hover::before {
+            left: 100%;
+        }
+
+        .btn-check:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-check i {
+            transition: transform 0.3s;
+        }
+
+        .btn-check:hover i {
+            transform: translateX(5px);
+        }
+
+        .trust-badges {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 24px 0;
+            flex-wrap: wrap;
+        }
+
+        .trust-badge {
+            background: rgba(0, 102, 0, 0.05);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        .trust-badge i {
+            color: var(--secondary);
+            font-size: 0.9rem;
+        }
+
+        .trust-note {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--gray);
+            margin-top: 24px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="loan-card">
+        <div class="header">
+            <div class="logo">
+
+                <span>mkopochapchap</span>
+            </div>
+
+            <!-- Progress Tracker -->
+            <div class="progress-tracker">
+                <div class="step active">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Check</div>
+                </div>
+                <div class="step">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">Select</div>
+                </div>
+                <div class="step">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Get Cash</div>
+                </div>
+            </div>
+            <h2>Check Your Loan Eligibility</h2>
+            <p class="subtitle">Find out how much you qualify for instantly</p>
+            <p class="amount-range">Ksh. 1,500 – 80,000</p>
+        </div>
+
+        <form id="eligibility_form" onsubmit="handleSubmit(event)">
+            <div class="form-group">
+                <input type="text" name="name" id="name" class="form-control" placeholder=" " required>
+                <label for="name" class="form-label">Full Name</label>
+            </div>
+
+            <div class="form-group">
+                <input type="tel" name="phone_number" id="phone_number" class="form-control" placeholder=" " required>
+                <label for="phone_number" class="form-label">Phone Number</label>
+            </div>
+
+            <div class="form-group">
+                <input type="number" name="id_number" id="id_number" class="form-control" placeholder=" " required>
+                <label for="id_number" class="form-label">ID Number</label>
+            </div>
+
+            <div class="form-group">
+                <select name="loan_type" id="loan_type" class="form-control" required>
+                    <option value="" disabled selected>Select Loan Type</option>
+                    <option>Business Loan</option>
+                    <option>Personal Loan</option>
+                    <option>Education Loan</option>
+                    <option>Medical Loan</option>
+                    <option>Emergency Loan</option>
+                </select>
+            </div>
+
+            <div class="trust-badges">
+                <div class="trust-badge">
+                    <i class="fas fa-lock"></i>
+                    <span>Secure Application</span>
+                </div>
+                <div class="trust-badge">
+                    <i class="fas fa-user-shield"></i>
+                    <span>No CRB Check</span>
+                </div>
+                <div class="trust-badge">
+                    <i class="fas fa-bolt"></i>
+                    <span>Instant Approval</span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-check">
+                Check Eligibility <i class="fas fa-arrow-right"></i>
+            </button>
+
+            <p class="trust-note">No paperwork required. No guarantors needed.</p>
+        </form>
+    </div>
+
+    <!-- SweetAlert JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.all.min.js"></script>
+
+    <script src="/js/eligibility.js"></script>
+</body>
+
+</html>
