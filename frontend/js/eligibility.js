@@ -24,7 +24,7 @@ function handleSubmit(e) {
     }
 
     // Store data
-    sessionStorage.setItem('myLoan', JSON.stringify({
+    sessionStorage.setItem('myLoanNewApp', JSON.stringify({
         name,
         phone_number: phone,
         id_number: id,
@@ -48,7 +48,7 @@ function handleSubmit(e) {
 
 // Fill form if returning
 window.onload = () => {
-    const data = JSON.parse(sessionStorage.getItem('myLoan') || '{}');
+    const data = JSON.parse(sessionStorage.getItem('myLoanNewApp') || '{}');
     if (data.name) {
         document.getElementById('name').value = data.name;
         document.getElementById('name').dispatchEvent(new Event('input'));

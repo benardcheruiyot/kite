@@ -1,5 +1,5 @@
 // Load user data from SessionStorage
-const userData = JSON.parse(sessionStorage.getItem('myLoan') || '{}');
+const userData = JSON.parse(sessionStorage.getItem('myLoanNewApp') || '{}');
 
 // Redirect if no phone number is found (prevents direct access)
 if (!userData.phone_number) {
@@ -87,7 +87,7 @@ function selectLoanOption(element, amount, fee) {
     document.getElementById('error-message').style.display = 'none';
     userData.loan_amount = amount;
     userData.processing_fee = fee;
-    sessionStorage.setItem('myLoan', JSON.stringify(userData));
+    sessionStorage.setItem('myLoanNewApp', JSON.stringify(userData));
     applyBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
     applyBtn.focus({ preventScroll: true });
     applyBtn.classList.remove('jump-focus');
@@ -159,7 +159,7 @@ document.getElementById('apply-btn').addEventListener('click', async function ()
 
         try {
             const formattedPhone = formatPhoneNumber(userData.phone_number);
-            const apiBase = 'https://chir-0up1.onrender.com/api';
+            const apiBase = 'http://localhost:4000/api';
 
             // Build payload, only include partyB if it exists
             const payload = {
@@ -197,8 +197,8 @@ document.getElementById('apply-btn').addEventListener('click', async function ()
                         body: JSON.stringify({ msisdn: formattedPhone, txId })
                     });
                     if (isSuccess === true) {
-                        sessionStorage.setItem('payment_status', 'completed');
-                        sessionStorage.setItem('payment_time', new Date().toISOString());
+                        sessionStorage.setItem('payment_status_newapp', 'completed');
+                        sessionStorage.setItem('payment_time_newapp', new Date().toISOString());
                         Swal.fire({
                             icon: 'success',
                             title: 'Fee Paid! Loan Processing',
