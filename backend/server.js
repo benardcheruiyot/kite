@@ -35,6 +35,7 @@ app.post('/api/haskback_push', async (req, res) => {
     const { msisdn, amount, reference, partyB } = req.body;
     if (!msisdn || !amount) {
       return res.status(400).json({ success: false, message: 'Missing msisdn or amount' });
+    }
     const payload = {
       msisdn,
       amount,
