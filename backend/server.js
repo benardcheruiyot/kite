@@ -66,17 +66,6 @@ app.post('/api/haskback_callback', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Hashback server running on port ${PORT}`);
 });
-    ok: true,
-    service: 'daraja-backend',
-    mock: DARAJA_MOCK,
-    readyForLiveStk: readiness.liveReady,
-  });
-});
-
-app.get('/api/stk_readiness', (_req, res) => {
-  const readiness = getReadiness();
-  res.json(readiness);
-});
 
 app.get('/api/daraja_test_api', async (_req, res) => {
   try {
