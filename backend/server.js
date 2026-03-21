@@ -66,18 +66,6 @@ app.post('/api/haskback_callback', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Hashback server running on port ${PORT}`);
 });
-  // PartyB is intentionally hardcoded to BusinessShortCode for BuyGoods consistency.
-  return shortCode;
-}
-
-function getReadiness() {
-  const env = getDarajaEnv();
-  const callbackUrl = String(process.env.DARAJA_CALLBACK_URL || '').trim();
-  const transactionType = getTransactionType();
-  const effectiveTransactionType = getEffectiveTransactionType(transactionType, env);
-  const shortCode = String(process.env.DARAJA_SHORTCODE || '').trim();
-  const partyB = getPartyB(shortCode);
-  const checks = {
     mode: DARAJA_MOCK ? 'mock' : 'live',
     env,
     envValue: !!env,
