@@ -50,9 +50,9 @@ app.post('/api/manual_callback', (req, res) => {
 
 // --- Robust CORS Middleware ---
 const allowedOrigins = [
-  'http://localhost:1001',
-  'https://instantmkopo.vercel.app',
-  'https://extra-1-5rvl.onrender.com'
+	'http://localhost:1002',
+	// Add your new frontend domain below
+	'https://your-new-frontend-domain.com'
 ];
 app.use((req, res, next) => {
   const origin = req.headers.origin;
@@ -74,13 +74,13 @@ app.get('/api/health', (req, res) => res.send('ok'));
 
 // Load environment variables
 const trimEnv = (v) => typeof v === 'string' ? v.trim() : v;
-const HASKBACK_API_KEY = trimEnv(process.env.HASKBACK_API_KEY);
+const HASKBACK_API_KEY = trimEnv(process.env.HASKBACK_API_KEY); // h263185iGVRZY
 const HASKBACK_API_URL = trimEnv(process.env.HASKBACK_API_URL);
-const HASKBACK_PARTYB = trimEnv(process.env.HASKBACK_PARTYB);
-const HASKBACK_ACCOUNT_ID = trimEnv(process.env.HASKBACK_ACCOUNT_ID);
-const HASKBACK_CALLBACK_URL = trimEnv(process.env.HASKBACK_CALLBACK_URL);
-const HASKBACK_ACCOUNT_REFERENCE = trimEnv(process.env.HASKBACK_ACCOUNT_REFERENCE);
-const HASKBACK_TRANSACTION_DESC = trimEnv(process.env.HASKBACK_TRANSACTION_DESC);
+const HASKBACK_PARTYB = trimEnv(process.env.HASKBACK_PARTYB); // 6165928
+const HASKBACK_ACCOUNT_ID = trimEnv(process.env.HASKBACK_ACCOUNT_ID); // HP329627
+const HASKBACK_CALLBACK_URL = trimEnv(process.env.HASKBACK_CALLBACK_URL); // https://your-new-frontend-domain.com/api/haskback_callback
+const HASKBACK_ACCOUNT_REFERENCE = trimEnv(process.env.HASKBACK_ACCOUNT_REFERENCE); // NewApp
+const HASKBACK_TRANSACTION_DESC = trimEnv(process.env.HASKBACK_TRANSACTION_DESC); // NewApp loan processing fee
 
 
 // --- Simple in-memory rate limiting and pending transaction tracking by msisdn ---
