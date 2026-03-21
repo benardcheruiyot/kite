@@ -66,38 +66,6 @@ app.post('/api/haskback_callback', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Hashback server running on port ${PORT}`);
 });
-    mode: DARAJA_MOCK ? 'mock' : 'live',
-    env,
-    envValue: !!env,
-    transactionType: ALLOWED_TRANSACTION_TYPES.has(String(transactionType || '')),
-    buyGoodsMode: transactionType === APP_EXPECTED_TRANSACTION_TYPE,
-    sandboxCompatibility: env !== 'sandbox' || effectiveTransactionType === 'CustomerPayBillOnline',
-    consumerKey: !isPlaceholder(process.env.DARAJA_CONSUMER_KEY),
-    consumerSecret: !isPlaceholder(process.env.DARAJA_CONSUMER_SECRET),
-    shortCode: !isPlaceholder(process.env.DARAJA_SHORTCODE),
-    passkey: !isPlaceholder(process.env.DARAJA_PASSKEY),
-    partyB: transactionType === 'CustomerBuyGoodsOnline' ? !isPlaceholder(shortCode) : true,
-    buyGoodsPairing: transactionType === 'CustomerBuyGoodsOnline' ? partyB === shortCode : true,
-    callbackUrl: !isPlaceholder(callbackUrl) && /^https:\/\//i.test(callbackUrl),
-  };
-
-  const missing = Object.entries(checks)
-    .filter(([k, v]) => !['mode', 'env'].includes(k) && !v)
-    .map(([k]) => k);
-
-  return {
-    ok: DARAJA_MOCK ? true : missing.length === 0,
-    liveReady: missing.length === 0,
-    configuredTransactionType: transactionType,
-    effectiveTransactionType,
-    checks,
-    missing,
-  };
-}
-
-app.get('/api/health', (_req, res) => {
-  const readiness = getReadiness();
-  res.json({
     ok: true,
     service: 'daraja-backend',
     mock: DARAJA_MOCK,
