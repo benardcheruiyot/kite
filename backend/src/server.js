@@ -142,8 +142,42 @@ app.post('/api/haskback_push', async (req, res) => {
 	} else if (!msisdn.startsWith('254')) {
 		msisdn = '254' + msisdn;
 	}
-	// Best practice for your use case: allow immediate retry regardless of pending or previous transaction state
-	// No rate limiting or pending transaction block
+	// Block if there is a pending transaction for this msisdn
+	if (stkPendingTx.has(msisdn)) {
+		return res.status(429).json({ success: false, message: 'You have a pending transaction. Please complete it before initiating a new one.' });
+	}
+	// Rate limit: 1 request per msisdn per minute, but allow immediate retry if last tx failed/cancelled/wrong pin/user cancelled
+	const now = Date.now();
+	const last = stkRateLimit.get(msisdn) || 0;
+	let lastTxId = null;
+	let lastTxStatus = null;
+	// Try to get last txId from pending or txStore
+	if (stkPendingTx.has(msisdn)) {
+		lastTxId = stkPendingTx.get(msisdn).txId;
+	} else {
+		// Find the most recent tx for this msisdn in txStore
+		for (const [txId, tx] of txStore.entries()) {
+			if (tx.msisdn === msisdn && (!lastTxId || (tx.updatedAt && tx.updatedAt > (txStore.get(lastTxId)?.updatedAt || 0)))) {
+				lastTxId = txId;
+			}
+		}
+	}
+	if (lastTxId && txStore.has(lastTxId)) {
+		lastTxStatus = String(txStore.get(lastTxId).status || '').toUpperCase();
+	}
+	// Allow immediate retry if last tx is FAILED, CANCELLED, REVERSED, DECLINED, USER_CANCELLED, WRONG_PIN, AUTHENTICATION_FAILED
+	const retryableStatuses = [
+		'FAILED', 'CANCELLED', 'REVERSED', 'DECLINED',
+		'USER_CANCELLED', 'USERCANCELLED', 'USER CANCELLED',
+		'WRONG_PIN', 'WRONGPIN', 'WRONG PIN',
+		'REQUEST_CANCELLED_BY_USER', 'REQUEST CANCELLED BY USER',
+		'REQUEST_CANCELLED', 'REQUEST CANCELLED',
+		'AUTHENTICATION_FAILED', 'AUTHENTICATION FAILED'
+	];
+	if (now - last < STK_RATE_LIMIT_WINDOW && !retryableStatuses.includes(lastTxStatus)) {
+		return res.status(429).json({ success: false, message: 'Too many STK requests. Please wait a minute before trying again.' });
+	}
+	stkRateLimit.set(msisdn, now);
 	// Validate required fields
 	if (!msisdn || !amount || !reference) {
 		console.error('Missing required fields:', req.body);
