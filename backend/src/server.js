@@ -1,3 +1,12 @@
+// DEPRECATED: Do not use this file. Use backend/server.js as the main entry point.
+throw new Error('This file is deprecated. Use backend/server.js as the main entry point.');
+
+require('dotenv').config();
+const express = require('express');
+const app = express();
+// --- Simple in-memory rate limiting and pending transaction tracking by msisdn ---
+const stkRateLimit = new Map(); // msisdn -> timestamp
+const stkPendingTx = new Map(); // msisdn -> { txId, createdAt }
 
 require('dotenv').config();
 const express = require('express');
