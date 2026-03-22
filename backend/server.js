@@ -32,16 +32,23 @@ app.get('/api/health', (_req, res) => {
 // Hashback payment initiation endpoint
 app.post('/api/haskback_push', async (req, res) => {
   try {
-    const { msisdn, amount, reference, partyB } = req.body;
+    const { msisdn, amount } = req.body;
     if (!msisdn || !amount) {
       return res.status(400).json({ success: false, message: 'Missing msisdn or amount' });
     }
+    // Build payload with all required fields from .env
     const payload = {
       msisdn,
       amount,
-      reference: reference || 'LoanAppUser',
+      accountId: process.env.HASKBACK_ACCOUNT_ID,
+      callbackUrl: process.env.HASKBACK_CALLBACK_URL,
+      accountReference: process.env.HASKBACK_ACCOUNT_REFERENCE,
+      transactionDesc: process.env.HASKBACK_TRANSACTION_DESC,
+      partyB: process.env.HASKBACK_PARTYB,
     };
-    if (partyB) payload.partyB = partyB;
+
+    // Log payload for debugging (remove in production if sensitive)
+    console.log('Sending payload to Haskback:', payload);
 
     const response = await axios.post(process.env.HASKBACK_API_URL + '/initiatestk', payload, {
       headers: {
@@ -52,7 +59,19 @@ app.post('/api/haskback_push', async (req, res) => {
     });
     return res.json(response.data);
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    // Improved error logging
+    if (error.response) {
+      console.error('Haskback API error:', error.response.status, error.response.data);
+      return res.status(500).json({
+        success: false,
+        message: error.response.data?.message || error.response.data || error.message,
+        status: error.response.status,
+        data: error.response.data,
+      });
+    } else {
+      console.error('Haskback API error:', error.message);
+      return res.status(500).json({ success: false, message: error.message });
+    }
   }
 });
 
