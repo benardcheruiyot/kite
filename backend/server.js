@@ -43,7 +43,7 @@ app.post('/api/haskback_push', async (req, res) => {
     };
     if (partyB) payload.partyB = partyB;
 
-    const response = await axios.post(process.env.HASKBACK_API_URL + '/haskback_push', payload, {
+    const response = await axios.post(process.env.HASKBACK_API_URL + '/initiatestk', payload, {
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': process.env.HASKBACK_API_KEY,
