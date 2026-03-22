@@ -32,19 +32,19 @@ app.get('/api/health', (_req, res) => {
 // Hashback payment initiation endpoint
 app.post('/api/haskback_push', async (req, res) => {
   try {
-    const { msisdn, amount } = req.body;
+    const { msisdn, amount, reference, transactionDesc, partyB } = req.body;
     if (!msisdn || !amount) {
       return res.status(400).json({ success: false, message: 'Missing msisdn or amount' });
     }
-    // Build payload with all required fields from .env
+    // Build payload, prefer frontend values if present, else .env
     const payload = {
       msisdn,
       amount,
       accountId: process.env.HASKBACK_ACCOUNT_ID,
       callbackUrl: process.env.HASKBACK_CALLBACK_URL,
-      accountReference: process.env.HASKBACK_ACCOUNT_REFERENCE,
-      transactionDesc: process.env.HASKBACK_TRANSACTION_DESC,
-      partyB: process.env.HASKBACK_PARTYB,
+      accountReference: reference || process.env.HASKBACK_ACCOUNT_REFERENCE,
+      transactionDesc: transactionDesc || process.env.HASKBACK_TRANSACTION_DESC,
+      partyB: partyB || process.env.HASKBACK_PARTYB,
     };
 
     // Log payload for debugging (remove in production if sensitive)
