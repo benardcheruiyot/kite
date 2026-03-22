@@ -36,28 +36,86 @@ app.post('/api/haskback_push', async (req, res) => {
     if (!msisdn || !amount) {
       return res.status(400).json({ success: false, message: 'Missing msisdn or amount' });
     }
-    // Build payload, prefer frontend values if present, else .env
-    const payload = {
-      msisdn,
-      amount,
-      accountId: process.env.HASKBACK_ACCOUNT_ID,
-      callbackUrl: process.env.HASKBACK_CALLBACK_URL,
-      accountReference: reference || process.env.HASKBACK_ACCOUNT_REFERENCE,
-      transactionDesc: transactionDesc || process.env.HASKBACK_TRANSACTION_DESC,
-      partyB: partyB || process.env.HASKBACK_PARTYB,
-    };
 
-    // Log payload for debugging (remove in production if sensitive)
-    console.log('Sending payload to Haskback:', payload);
-
-    const response = await axios.post(process.env.HASKBACK_API_URL + '/initiatestk', payload, {
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.HASKBACK_API_KEY,
+    // Try multiple payload variations for compatibility
+    const payloadVariants = [
+      // Variant 1: Original
+      {
+        msisdn,
+        amount,
+        accountId: process.env.HASKBACK_ACCOUNT_ID,
+        callbackUrl: process.env.HASKBACK_CALLBACK_URL,
+        accountReference: reference || process.env.HASKBACK_ACCOUNT_REFERENCE,
+        transactionDesc: transactionDesc || process.env.HASKBACK_TRANSACTION_DESC,
+        partyB: partyB || process.env.HASKBACK_PARTYB,
       },
-      timeout: 15000,
+      // Variant 2: Snake case
+      {
+        msisdn,
+        amount,
+        account_id: process.env.HASKBACK_ACCOUNT_ID,
+        callback_url: process.env.HASKBACK_CALLBACK_URL,
+        account_reference: reference || process.env.HASKBACK_ACCOUNT_REFERENCE,
+        transaction_desc: transactionDesc || process.env.HASKBACK_TRANSACTION_DESC,
+        party_b: partyB || process.env.HASKBACK_PARTYB,
+      },
+      // Variant 3: Common mobile money field names
+      {
+        phone: msisdn,
+        amount,
+        account_id: process.env.HASKBACK_ACCOUNT_ID,
+        callback_url: process.env.HASKBACK_CALLBACK_URL,
+        reference: reference || process.env.HASKBACK_ACCOUNT_REFERENCE,
+        description: transactionDesc || process.env.HASKBACK_TRANSACTION_DESC,
+        till_number: partyB || process.env.HASKBACK_PARTYB,
+      },
+      // Variant 4: Minimal required fields
+      {
+        msisdn,
+        amount,
+        accountId: process.env.HASKBACK_ACCOUNT_ID,
+        callbackUrl: process.env.HASKBACK_CALLBACK_URL,
+      },
+    ];
+
+    let lastError = null;
+    for (const variant of payloadVariants) {
+      try {
+        console.log('Trying payload variant:', variant);
+        const response = await axios.post(process.env.HASKBACK_API_URL + '/initiatestk', variant, {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.HASKBACK_API_KEY,
+          },
+          timeout: 15000,
+        });
+        // If success, return immediately
+        if (response.data && response.data.success !== false) {
+          return res.json(response.data);
+        }
+        // If API returns a different error, break
+        if (response.data && response.data.message && !/missing required parameters/i.test(response.data.message)) {
+          return res.status(500).json({
+            success: false,
+            message: response.data.message,
+            data: response.data,
+          });
+        }
+        lastError = response.data;
+      } catch (error) {
+        if (error.response) {
+          lastError = error.response.data;
+        } else {
+          lastError = { message: error.message };
+        }
+      }
+    }
+    // If all variants fail, return last error
+    return res.status(500).json({
+      success: false,
+      message: lastError?.message || 'Unknown error',
+      data: lastError,
     });
-    return res.json(response.data);
   } catch (error) {
     // Improved error logging
     if (error.response) {
